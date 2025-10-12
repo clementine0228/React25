@@ -15,7 +15,7 @@ export default function Home() {
         />
         <ol>
           <li>
-            i can gooo you <code>app/page.tsx</code>.
+            i can two  you <code>app/page.tsx</code>.
           </li>
           <li>Save and see your changes instantly.</li>
         </ol>
