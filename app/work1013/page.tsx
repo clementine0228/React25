@@ -1,4 +1,4 @@
 import Index from './index'
-export default function Home(){
-    return (<Index/>)
+export default function home(){
+    return (<Index />)
 }
