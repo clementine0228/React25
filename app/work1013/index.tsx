@@ -4,9 +4,10 @@ import { blue, grey } from '@mui/material/colors';
 export default function ProductList() {
   // Add `url` to each product so it can link to its webpage.
   const products = [
-    { desc: "iPad", price: 20000, url: "https://www.apple.com/ipad/" },
-    { desc: "iPhone 8", price: 20000, url: "https://www.apple.com/iphone-8/" },
-    { desc: "iPhone X", price: 30000, url: "https://www.apple.com/iphone-x/" }
+    { desc: "product", price: 20000, href: "product.tsx" },
+    { desc: "customer", price: 20000, href: "customer.tsx" },
+    { desc: "supplier", price: 30000, href: "supplier.tsx" },
+    { desc: "order", price: 40000, href: "order.tsx" },
   ];
   // Dark theme styles
   const itemStyle = {
@@ -31,7 +32,7 @@ export default function ProductList() {
           <ListItem divider key={product.desc} sx={listItemStyle}>
             <ListItemButton
               component="a"
-              href={product.url}
+              href={product.href}
               target="_blank"
               rel="noopener noreferrer"
               sx={{ p: 1 }}
