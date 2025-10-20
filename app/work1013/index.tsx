@@ -4,11 +4,13 @@ import { blue, grey } from '@mui/material/colors';
 export default function ProductList() {
   // Add `url` to each product so it can link to its webpage.
   const products = [
-    { desc: "product", price: 20000, href: "product.tsx" },
-    { desc: "customer", price: 20000, href: "customer.tsx" },
-    { desc: "supplier", price: 30000, href: "supplier.tsx" },
-    { desc: "order", price: 40000, href: "order.tsx" },
+     { desc: "product", price: 20000, href: "/work1013/productpage" },
+    { desc: "customer", price: 20000, href: "/customer" },
+    { desc: "supplier", price: 3000, href: "/work1013/supplier" },
+    { desc: "order", price: 40000, href: "/order" },
   ];
+
+  
   // Dark theme styles
   const itemStyle = {
     bgcolor: grey[900], // dark container
@@ -24,6 +26,8 @@ export default function ProductList() {
     mb: 1,
     boxShadow: 1,
   };
+
+  
   return (
     <Container >
     <Box sx={itemStyle} >
