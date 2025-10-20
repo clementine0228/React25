@@ -4,7 +4,7 @@ import { blue, grey } from '@mui/material/colors';
 export default function ProductList() {
   // Add `url` to each product so it can link to its webpage.
   const products = [
-     { desc: "product", price: 40000, href: "/work1013/productpage" },
+     { desc: "product", price: 50000, href: "/work1013/productpage" },
     { desc: "customer", price: 20000, href: "/work1013/customer" },
     { desc: "supplier", price: 10000, href: "/work1013/supplier" },
     { desc: "order", price: 1700, href: "/work1013/orderlist" },
