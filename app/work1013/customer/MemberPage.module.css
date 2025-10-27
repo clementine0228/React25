@@ -1,68 +1,126 @@
-/* MemberPage.module.css */
+/* MemberPage.module.css - 極簡現代風格美化 */
 
-/* 容器樣式：模擬卡片效果，置中顯示 */
+/* 1. 容器樣式 */
 .container {
-  max-width: 600px;
-  margin: 40px auto;
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15); /* 更明顯的陰影 */
+  max-width: 700px;
+  margin: 50px auto;
+  padding: 40px;
+  border-radius: 16px;
+  /* 柔和的陰影 */
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08); 
   background-color: #ffffff;
-  border: 1px solid #dcdcdc;
-  font-family: Arial, sans-serif;
+  border: 1px solid #f0f0f0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* 標題樣式 */
+/* 2. 標題樣式 */
 .title {
-  font-size: 2.2rem;
-  color: #1a1a1a;
-  margin-bottom: 25px;
-  border-bottom: 3px solid #0070f3; /* Next.js 品牌藍色 */
+  font-size: 2.5rem;
+  color: #1f2937; /* 深灰 */
+  margin-bottom: 35px;
+  border-bottom: 4px solid #4f46e5; /* 簡潔的紫色底線 */
   padding-bottom: 10px;
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: -0.5px;
 }
 
-/* 列表樣式 */
+/* 3. 表單容器 */
+.addForm {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 40px;
+  padding-bottom: 25px;
+  border-bottom: 1px solid #e5e7eb; /* 淺分隔線 */
+}
+
+/* 4. 輸入欄位樣式 */
+.inputField {
+  flex-grow: 1;
+  padding: 12px 18px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 1.05rem;
+  color: #374151;
+  /* 讓輸入框填滿後有輕微陰影 */
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05); 
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.inputField:focus {
+  outline: none;
+  border-color: #4f46e5; /* 焦點時變紫色 */
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+}
+
+/* 5. 新增按鈕樣式 (主要行動按鈕) */
+.addButton {
+  padding: 12px 25px;
+  background-color: #4f46e5; /* 鮮豔紫色 */
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.addButton:hover {
+  background-color: #4338ca; /* 懸停時變深 */
+  transform: translateY(-1px); /* 輕微上浮效果 */
+}
+
+/* 6. 列表樣式 */
 .customerList {
   list-style: none;
   padding: 0;
   margin: 0;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden; /* 確保邊框和圓角一致 */
 }
 
-/* 列表項目樣式 */
+/* 7. 列表項目樣式 */
 .customerItem {
-  padding: 15px 20px;
-  margin-bottom: 10px;
-  background-color: #f7f7f7; /* 淺灰色背景 */
-  border-radius: 8px;
-  font-size: 1.1rem;
-  color: #333333;
-  border-left: 5px solid #0070f3; /* 藍色邊條裝飾 */
-  transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
-  cursor: pointer;
+  padding: 18px 25px;
+  font-size: 1.15rem;
+  color: #374151;
+  background-color: #ffffff;
+  border-bottom: 1px solid #f3f4f6; /* 極淺底線分隔 */
+  transition: background-color 0.2s, color 0.2s;
+  cursor: default;
+}
+
+.customerItem:last-child {
+  border-bottom: none; /* 最後一個項目沒有底線 */
 }
 
 .customerItem:hover {
-  background-color: #e0f2ff; /* 懸停變為淺藍色 */
-  transform: translateX(3px); /* 輕微向右移動 */
-  box-shadow: 0 4px 8px rgba(0, 112, 243, 0.1);
+  background-color: #f9fafb; /* 懸停時極淺變色 */
+  color: #4f46e5; /* 懸停時文字變紫色 */
 }
 
-/* 連結按鈕樣式 */
-.homeLink {
-  display: inline-block;
-  margin-top: 35px;
-  padding: 12px 25px;
-  background-color: #0070f3; 
-  color: white;
-  text-decoration: none;
-  border-radius: 8px;
-  font-weight: 600;
-  transition: background-color 0.3s, box-shadow 0.3s;
+/* 8. 連結居中 */
+.centerLink {
   text-align: center;
 }
 
+/* 9. 回首頁按鈕 (次要行動按鈕) */
+.homeLink {
+  display: inline-block;
+  margin-top: 40px;
+  padding: 10px 20px;
+  /* 灰色外框，更內斂 */
+  background-color: transparent; 
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: background-color 0.3s, color 0.3s;
+}
+
 .homeLink:hover {
-  background-color: #0056b3;
-  box-shadow: 0 6px 15px rgba(0, 112, 243, 0.5);
+  background-color: #f3f4f6;
+  color: #1f2937;
 }

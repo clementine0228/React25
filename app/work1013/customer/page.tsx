@@ -1,32 +1,68 @@
 "use client";
+import { useState } from 'react';
 import Link from "next/link";
-// 引入 CSS Modules 檔案，路徑請確保正確
-import styles from './MemberPage.module.css'; 
+import styles from './MemberPage.module.css'; // 請確保路徑正確
 
 export default function Member1Page() {
-  const customers = ["王小明", "陳美麗", "李志強", "吳佩玲"];
+  const [customers, setCustomers] = useState([
+    "王小明", 
+    "陳美麗", 
+    "李志強", 
+    "吳佩玲"
+  ]);
+
+  const [newCustomerName, setNewCustomerName] = useState("");
+
+  const handleAddCustomer = (e) => {
+    e.preventDefault();
+
+    if (newCustomerName.trim() === "") {
+      alert("請輸入顧客姓名！");
+      return;
+    }
+
+    setCustomers((prevCustomers) => [
+      ...prevCustomers,
+      newCustomerName.trim()
+    ]);
+
+    setNewCustomerName("");
+  };
 
   return (
-    // 使用 .container 類別來建立整體卡片框架
     <div className={styles.container}>
       
-      {/* 使用 .title 類別美化標題 */}
-      <h1 className={styles.title}>顧客列表</h1>
+      <h1 className={styles.title}>顧客列表 ({customers.length} 位)</h1>
       
-      {/* 使用 .customerList 類別作為列表容器 */}
+      {/* 新增資料表單 */}
+      <form onSubmit={handleAddCustomer} className={styles.addForm}>
+        <input
+          type="text"
+          placeholder="輸入新的顧客姓名..."
+          value={newCustomerName}
+          onChange={(e) => setNewCustomerName(e.target.value)}
+          className={styles.inputField}
+        />
+        <button type="submit" className={styles.addButton}>
+          新增顧客
+        </button>
+      </form>
+      
+      {/* 顧客列表 */}
       <ul className={styles.customerList}>
         {customers.map((name, index) => (
-          // 使用 .customerItem 類別美化列表項目
           <li key={index} className={styles.customerItem}>
             {name}
           </li>
         ))}
       </ul>
       
-      {/* 使用 .homeLink 類別將連結樣式化為按鈕 */}
-      <Link href="/work1013" className={styles.homeLink}>
-        回首頁
-      </Link>
+      {/* 回首頁連結 */}
+      <div className={styles.centerLink}>
+        <Link href="/work1013" className={styles.homeLink}>
+          回首頁
+        </Link>
+      </div>
     </div>
   );
 }
