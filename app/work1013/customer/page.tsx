@@ -1,7 +1,9 @@
 "use client";
 import { useState } from 'react';
 import Link from "next/link";
-import styles from './MemberPage.module.css'; // 請確保路徑正確
+// 確保 MemberPage.module.css 檔案在同一個目錄下
+import styles from './MemberPage.module.css'; 
+import React from 'react'; // 由於使用了 React.FormEvent，習慣上會明確引入 React
 
 export default function Member1Page() {
   const [customers, setCustomers] = useState([
@@ -13,7 +15,8 @@ export default function Member1Page() {
 
   const [newCustomerName, setNewCustomerName] = useState("");
 
-  const handleAddCustomer = (e) => {
+  // 修正：為 'e' 加上 React.FormEvent 型別註記
+  const handleAddCustomer = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (newCustomerName.trim() === "") {
