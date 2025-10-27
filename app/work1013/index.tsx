@@ -2,15 +2,13 @@ import { Box, Container, List, ListItem, ListItemText, ListItemButton } from "@m
 import { blue, grey } from '@mui/material/colors';
 
 export default function ProductList() {
-  // Add `url` to each product so it can link to its webpage.
   const products = [
-     { desc: "product", price: 60000, href: "/work1013/productpage" },
+    { desc: "product", price: 60000, href: "/work1013/productpage" },
     { desc: "customer", price: 20000, href: "/work1013/customer" },
     { desc: "supplier", price: 10000, href: "/work1013/supplier" },
     { desc: "order", price: 1700, href: "/work1013/orderlist" },
   ];
 
-  
   // Dark theme styles
   const itemStyle = {
     bgcolor: grey[900], // dark container
@@ -29,9 +27,9 @@ export default function ProductList() {
 
   
   return (
-    <Container >
-    <Box sx={itemStyle} >
-      <List subheader="Product list" aria-label="product list" sx={{ color: grey[50] }}>
+    <Container>
+      <Box sx={itemStyle}>
+        <List subheader="Product list" aria-label="product list" sx={{ color: grey[50] }}>
         {products.map((product) =>
           <ListItem divider key={product.desc} sx={listItemStyle}>
             <ListItemButton
