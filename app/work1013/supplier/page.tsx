@@ -181,7 +181,7 @@ export default function ProductList() {
             onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
             fullWidth
             autoFocus
-            placeholder="例如：蘋果"
+            placeholder="例如：蘋果ss"
           />
           <TextField
             label="数量"

@@ -39,7 +39,7 @@ export default function ProductEdit({ open, product, onClose, onEdit }: ProductE
 
   setLoading(true);
 
-  // ✅修正：改成 supplier
+  // 修正：改成 supplier
   const { error } = await supabase
     .from("supplier")
     .update({
