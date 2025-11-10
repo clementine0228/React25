@@ -85,7 +85,7 @@ export default function Member1Page() { // 維持原元件名稱
   };
 
   // Dark theme styles (保持不變)
- const itemStyle = {
+  const itemStyle = {
     bgcolor: grey[900], 
     color: grey[50], 
     borderRadius: 2,
@@ -104,13 +104,12 @@ export default function Member1Page() { // 維持原元件名稱
   }
 
   return (
-    // ✨ 在這裡新增 sx={{ pt: 4 }} 來增加頂部內邊距，將內容往下推
-    <Container sx={{ pt: 4 }}> 
+    <Container>
       <Box sx={{ ...itemStyle, mb: 2 }}>
         <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
           <TextField
             name="name"
-            label="Customer Name"
+            label="Customer Name" // 標籤改為 Customer Name
             value={newCustomer.name}
             onChange={handleInputChange}
             variant="filled"
@@ -122,18 +121,18 @@ export default function Member1Page() { // 維持原元件名稱
               '& .MuiFilledInput-root': { bgcolor: grey[800] }
             }}
           />
+          {/* 移除價格輸入欄位 */}
           <Button
             type="submit"
             variant="contained"
-            // 根據您的程式碼，使用 green 的顏色變數
             sx={{ bgcolor: green[700], color: grey[50], '&:hover': { bgcolor: green[600] } }}
           >
-            Add Customer
+            Add Customer {/* 按鈕文字改為 Add Customer */}
           </Button>
         </form>
       </Box>
       <Box sx={itemStyle}>
-        <List subheader="Customer List" aria-label="customer list" sx={{ color: grey[50] }}>
+        <List subheader="Customer List" aria-label="customer list" sx={{ color: grey[50] }}> {/* 副標題改為 Customer List */}
           {loading ? (
             <ListItem>
               <ListItemText primary={<span style={{ color: grey[50] }}>Loading customers...</span>} />
@@ -148,7 +147,7 @@ export default function Member1Page() { // 維持原元件名稱
                 <ListItemButton component="a" sx={{ p: 1 }}>
                   <ListItemText
                     primary={<span style={{ fontWeight: 600, fontSize: '1.1rem', color: grey[50] }}>{customer.name}</span>}
-                    secondary={
+                    secondary={ // 簡化 secondary 顯示
                       <span style={{ color: grey[400], fontSize: '0.8rem' }}>
                         Added: {new Date(customer.created_at).toLocaleDateString()}
                       </span>
