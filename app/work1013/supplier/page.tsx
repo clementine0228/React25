@@ -1,17 +1,17 @@
 "use client";
-import { createClient } from '@supabase/supabase-js'
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabase = createClient(supabaseUrl, supabaseKey);
+import { supabase } from '../../../lib/supabaseClient';
 import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
+import ProductEdit, { Product as SupplierProduct } from './supplierEdit';
 
 
 
 import React, { useEffect, useState } from "react";
-import { Box, Container, List, ListItem, ListItemText, TextField, Button, Stack, Typography, DialogTitle, Dialog, DialogContent, DialogActions, Fab, InputAdornment } from "@mui/material";
-import { amber, blue, deepOrange, grey, lightGreen, orange, red } from '@mui/material/colors';
+import { Box, Container, List, ListItem, ListItemText, TextField, Button, Stack, Typography, DialogTitle, Dialog, DialogContent, DialogActions, Fab, InputAdornment, IconButton } from "@mui/material";
+import { blue, grey } from '@mui/material/colors';
 
-type Product = { id: number; name: string; price: number };
+type Product = SupplierProduct;
 
 
 
@@ -19,6 +19,8 @@ export default function ProductList() {
   const [products, setProducts] = useState<Product[]>([]);
   const [showAdd, setShowAdd] = useState(false);
   const [refresh, setRefresh] = useState(0);
+  const [showEdit, setShowEdit] = useState(false);
+  const [editProduct, setEditProduct] = useState<Product | null>(null);
 
 
   const itemStyle = {
@@ -33,7 +35,26 @@ export default function ProductList() {
     mb: 3,
     boxShadow: 1,
   } as const;
-   const supabase = createClient(supabaseUrl, supabaseKey);
+  
+
+  async function handleDelete(id: number) { // 删除
+    const { error } = await supabase
+      .from("supplier")
+      .delete()
+      .eq("id", id);
+
+    if (error) console.error(error);
+
+    setRefresh(r => r + 1);
+  }
+
+  function openEdit(product: Product) {
+    setEditProduct(product);
+    setShowEdit(true);
+  }
+  
+
+  
 
   // 從 Supabase 抓取產品資
   // 初始載入與 refresh 觸發
@@ -50,7 +71,9 @@ export default function ProductList() {
       }
     }
     fetchProducts();
-  }, [supabase, refresh]);
+  }, [refresh]);
+
+   
 
   return (
     <Container>
@@ -68,10 +91,27 @@ export default function ProductList() {
                 primary={<span style={{ color: '#000', fontWeight: 600, fontSize: '1.1rem' }}>{supplier.name}</span>}
                 secondary={<span style={{ color: blue[700], fontWeight: 500 }}>NT$ {supplier.price.toString()}</span>}
               />
+
+              <Stack direction="row" spacing={1}>
+                <IconButton edge="end" aria-label="edit" onClick={() => openEdit(supplier)}>
+                  <EditIcon />
+                </IconButton>
+                <IconButton edge="end" onClick={() => handleDelete(supplier.id)}>
+                  <DeleteIcon />
+                </IconButton>
+              </Stack>
             </ListItem>
           )}
+           
+         
         </List>
         <ProductAdd open={showAdd} onClose={() => setShowAdd(false)} onAdd={() => setRefresh(r => r + 1)} />
+        <ProductEdit
+          open={showEdit}
+          product={editProduct}
+          onClose={() => { setShowEdit(false); setEditProduct(null); }}
+          onEdit={() => { setShowEdit(false); setEditProduct(null); setRefresh(r => r + 1); }}
+        />
       </Box>
     </Container>
   );
@@ -85,6 +125,10 @@ export default function ProductList() {
   onClose: () => void;
   onAdd: () => void;
 };
+
+
+
+  
 
    function ProductAdd({ open, onClose, onAdd }: ProductAddProps) {
   const [form, setForm] = useState({ name: '', price: '' });
@@ -116,11 +160,15 @@ export default function ProductList() {
     }
   }
 
+  
+
   function handleDialogClose() {
     setError(null);
     setForm({ name: '', price: '' });
     onClose();
   }
+
+  
 
   return (
     <Dialog open={open} onClose={handleDialogClose} maxWidth="xs" fullWidth>
