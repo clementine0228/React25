@@ -1,10 +1,14 @@
 "use client";
 
-import { Box, Container, List, ListItem, ListItemText, ListItemButton, TextField, Button } from "@mui/material";
+import { Box, Container, List, ListItem, ListItemText, ListItemButton, TextField, Button, IconButton } from "@mui/material";
 import { blue, grey } from '@mui/material/colors';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import SaveIcon from '@mui/icons-material/Save';
+import CloseIcon from '@mui/icons-material/Close';
 
 interface Product {
   id: number;
@@ -19,11 +23,73 @@ export default function ProductList() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
+
+  // edit/delete states
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editValues, setEditValues] = useState({ name: '', price: '' });
+  const [actionLoading, setActionLoading] = useState(false);
   
   useEffect(() => {
     setMounted(true);
     fetchProducts();
   }, []);
+
+  const startEdit = (product: Product) => {
+    setEditingId(product.id);
+    setEditValues({ name: product.name, price: product.price.toString() });
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditValues({ name: '', price: '' });
+  };
+
+  const handleEditChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setEditValues(prev => ({ ...prev, [name]: value }));
+  };
+
+  const saveEdit = async (id: number) => {
+    if (!editValues.name || !editValues.price) return;
+    setActionLoading(true);
+    try {
+      const { error } = await supabase
+        .from('product')
+        .update({ name: editValues.name, price: Number(editValues.price) })
+        .eq('id', id);
+      if (error) {
+        console.error('Error updating product:', error);
+      } else {
+        await fetchProducts();
+        cancelEdit();
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    const ok = window.confirm('Delete this product?');
+    if (!ok) return;
+    setActionLoading(true);
+    try {
+      const { error } = await supabase
+        .from('product')
+        .delete()
+        .eq('id', id);
+      if (error) {
+        console.error('Error deleting product:', error);
+      } else {
+        await fetchProducts();
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
   const fetchProducts = async () => {
     try {
@@ -159,25 +225,48 @@ export default function ProductList() {
               <ListItem>
                 <ListItemText primary={<span style={{ color: grey[50] }}>No products found</span>} />
               </ListItem>
-            ) : products.map((product) =>
+            ) : products.map((product) => (
               <ListItem divider key={product.id} sx={listItemStyle}>
-                <Link href={product.href || `/work1013/product${product.id}`} passHref>
-                  <ListItemButton component="a" sx={{ p: 1 }}>
-                    <ListItemText
-                      primary={<span style={{ fontWeight: 600, fontSize: '1.1rem', color: grey[50] }}>{product.name}</span>}
-                      secondary={
-                        <div>
-                          <span style={{ color: blue[300], fontWeight: 500, display: 'block' }}>NT$ {product.price.toString()}</span>
-                          <span style={{ color: grey[400], fontSize: '0.8rem' }}>
-                            Added: {new Date(product.created_at).toLocaleDateString()}
-                          </span>
-                        </div>
-                      }
-                    />
-                  </ListItemButton>
-                </Link>
+                {editingId === product.id ? (
+                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', width: '100%' }}>
+                    <TextField name="name" value={editValues.name} onChange={handleEditChange} size="small" sx={{ flex: 2, '& .MuiFilledInput-input': { color: grey[50] } }} variant="filled" />
+                    <TextField name="price" value={editValues.price} onChange={handleEditChange} size="small" sx={{ width: 120, '& .MuiFilledInput-input': { color: grey[50] } }} variant="filled" type="number" />
+                    <IconButton onClick={() => saveEdit(product.id)} color="primary" disabled={actionLoading} sx={{ color: blue[300] }}>
+                      <SaveIcon />
+                    </IconButton>
+                    <IconButton onClick={cancelEdit} disabled={actionLoading} sx={{ color: grey[400] }}>
+                      <CloseIcon />
+                    </IconButton>
+                  </Box>
+                ) : (
+                  <>
+                    <Link href={product.href || `/work1013/product${product.id}`} passHref>
+                      <ListItemButton component="a" sx={{ p: 1 }}>
+                        <ListItemText
+                          primary={<span style={{ fontWeight: 600, fontSize: '1.1rem', color: grey[50] }}>{product.name}</span>}
+                          secondary={
+                            <div>
+                              <span style={{ color: blue[300], fontWeight: 500, display: 'block' }}>NT$ {product.price.toString()}</span>
+                              <span style={{ color: grey[400], fontSize: '0.8rem' }}>
+                                Added: {new Date(product.created_at).toLocaleDateString()}
+                              </span>
+                            </div>
+                          }
+                        />
+                      </ListItemButton>
+                    </Link>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <IconButton onClick={() => startEdit(product)} sx={{ color: grey[400] }}>
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton onClick={() => handleDelete(product.id)} sx={{ color: grey[400] }}>
+                        <DeleteIcon />
+                      </IconButton>
+                    </Box>
+                  </>
+                )}
               </ListItem>
-            )}
+            ))}
             </List>
           </Box>
     </Container>
