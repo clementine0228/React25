@@ -104,7 +104,7 @@ export default function ProductList() {
     }
     setLoading(true);
     const { error } = await supabase
-      .from('supplier') // 改成 supplier
+      .from('supplier') // 改成 supplier 名
       .insert([{ name: form.name.trim(), price: n }]);
     setLoading(false);
     if (error) {
