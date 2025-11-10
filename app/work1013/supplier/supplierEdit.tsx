@@ -54,7 +54,7 @@ export default function ProductEdit({ open, product, onClose, onEdit }: ProductE
     setError(error.message);
   } else {
     onEdit(); // 通知父層刷新
-    onClose(); // 關閉 Dialog
+    onClose(); // 
   }
 }
 

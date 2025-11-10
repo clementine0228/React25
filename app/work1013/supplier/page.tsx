@@ -176,12 +176,12 @@ export default function ProductList() {
       <DialogContent dividers>
         <Stack spacing={2} sx={{ mt: 1 }}>
           <TextField
-            label="供应名称"
+            label="供应名"
             value={form.name}
             onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
             fullWidth
             autoFocus
-            placeholder="例如：蘋果ss"
+            placeholder="例如 蘋果ss"
           />
           <TextField
             label="数量"
