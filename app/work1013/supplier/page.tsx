@@ -1,19 +1,25 @@
 "use client";
+import { createClient } from '@supabase/supabase-js'
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabase = createClient(supabaseUrl, supabaseKey);
+import AddIcon from '@mui/icons-material/Add';
 
-import React, { useState } from "react";
-import { Box, Container, List, ListItem, ListItemText, TextField, Button, Stack, Typography } from "@mui/material";
+
+
+import React, { useEffect, useState } from "react";
+import { Box, Container, List, ListItem, ListItemText, TextField, Button, Stack, Typography, DialogTitle, Dialog, DialogContent, DialogActions, Fab, InputAdornment } from "@mui/material";
 import { amber, blue, deepOrange, grey, lightGreen, orange, red } from '@mui/material/colors';
 
-type Product = { desc: string; price: number };
+type Product = { id: number; name: string; price: number };
+
+
 
 export default function ProductList() {
-  // 產品只存在本地 state 陣列
-  const [products, setProducts] = useState<Product[]>([
-    { desc: "少林寺好食材", price: 4000 },
-    { desc: "懦夫救星", price: 1000 },
-    { desc: "唐牛工業", price: 5000 },
-  ]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [showAdd, setShowAdd] = useState(false);
+  const [refresh, setRefresh] = useState(0);
+
 
   const itemStyle = {
     bgcolor: blue[200],
@@ -27,70 +33,125 @@ export default function ProductList() {
     mb: 3,
     boxShadow: 1,
   } as const;
+   const supabase = createClient(supabaseUrl, supabaseKey);
 
-
-  function handleAddProduct(newItem: Product) {
-    setProducts((p) => [newItem, ...p]);
-  }
+  // 從 Supabase 抓取產品資料
+  // 初始載入與 refresh 觸發
+  useEffect(() => {
+    async function fetchProducts() {
+      const { data, error } = await supabase
+        .from("supplier")
+        .select('id, name, price, created_at')
+        .order('id', { ascending: true });
+      if (error) {
+        setProducts([]);
+      } else {
+        setProducts(data || []);
+      }
+    }
+    fetchProducts();
+  }, [supabase, refresh]);
 
   return (
-    <Container maxWidth={false} disableGutters sx={{ minHeight: '100vh', alignItems: 'center', justifyContent: 'center', p: 4 }}>
+    <Container>
       <Box sx={itemStyle}>
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-          <Typography variant="h6">
-            {showAdd ? '新增供应商' : '供应列表'}
-          </Typography>
-          <Button variant="outlined" onClick={() => setShowAdd(s => !s)}>
-            {showAdd ? '回到列表' : '新增供应商'}
-          </Button>
+           <Typography variant="h6">供应列表</Typography>
         </Stack>
-        {showAdd ? (
-          <AddProductForm onAdd={item => { handleAddProduct(item); setShowAdd(false); }} />
-        ) : (
-          <List subheader="供应商" aria-label="product list">
-            {products.map((product, idx) =>
-              <ListItem divider key={`${product.desc}-${product.price}-${idx}`} sx={listItemStyle}>
-                <ListItemText
-                  primary={<span style={{ color: orange[300],fontWeight: 600, fontSize: '1.5rem' }}>{product.desc}</span>}
-                  secondary={<span style={{ color: orange[700], fontWeight: 500 }}>供应 {product.price.toString()}</span>}
-                />
-              </ListItem>
-            )}
-          </List>
-        )}
+        <Fab color="primary" aria-label="add" sx={{ position: 'fixed', bottom: 32, right: 32, zIndex: 1000 }} onClick={() => setShowAdd(true)}>
+          <AddIcon />
+        </Fab>
+        <List>
+          {products.map((supplier) =>
+            <ListItem divider key={supplier.id} sx={listItemStyle}>
+              <ListItemText
+                primary={<span style={{ color: '#000', fontWeight: 600, fontSize: '1.1rem' }}>{supplier.name}</span>}
+                secondary={<span style={{ color: blue[700], fontWeight: 500 }}>NT$ {supplier.price.toString()}</span>}
+              />
+            </ListItem>
+          )}
+        </List>
+        <ProductAdd open={showAdd} onClose={() => setShowAdd(false)} onAdd={() => setRefresh(r => r + 1)} />
       </Box>
     </Container>
   );
 
+}
+
+
   // 內部元件：新增產品表單
-  function AddProductForm({ onAdd }: { onAdd: (item: Product) => void }) {
-    const [form, setForm] = useState({ desc: '', price: '' });
-    const [error, setError] = useState<string | null>(null);
+  type ProductAddProps = {
+  open: boolean;
+  onClose: () => void;
+  onAdd: () => void;
+};
 
-    function handleSubmit() {
-      setError(null);
-      if (!form.desc.trim()) {
-        setError('請輸入產品名稱');
-        return;
-      }
-      const n = Number(form.price);
-      if (!form.price || Number.isNaN(n) || n <= 0) {
-        setError('價格需為大於 0 的數字');
-        return;
-      }
-      onAdd({ desc: form.desc.trim(), price: n });
-      setForm({ desc: '', price: '' });
+   function ProductAdd({ open, onClose, onAdd }: ProductAddProps) {
+  const [form, setForm] = useState({ name: '', price: '' });
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit() {
+    setError(null);
+    if (!form.name.trim()) {
+      setError('請輸入產品名稱');
+      return;
     }
-
-    return (
-      <>
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 2 }}>
-          <TextField label="供应商名稱" value={form.desc} onChange={e => setForm(f => ({ ...f, desc: e.target.value }))} fullWidth />
-          <TextField label="数量" value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))} sx={{ width: 160 }} />
-          <Button variant="contained" onClick={handleSubmit}>新增</Button>
-        </Stack>
-        {error && <Typography color="error" sx={{ mb: 2 }}>{error}</Typography>}
-      </>
-    );
+    const n = Number(form.price);
+    if (!form.price || Number.isNaN(n) || n <= 0) {
+      setError('價格需為大於 0 的數字');
+      return;
+    }
+    setLoading(true);
+    const { error } = await supabase
+      .from('supplier') // 改成 supplier
+      .insert([{ name: form.name.trim(), price: n }]);
+    setLoading(false);
+    if (error) {
+      setError(error.message);
+    } else {
+      setForm({ name: '', price: '' });
+      onAdd();   // 通知父元件刷新
+      onClose();
+    }
   }
+
+  function handleDialogClose() {
+    setError(null);
+    setForm({ name: '', price: '' });
+    onClose();
+  }
+
+  return (
+    <Dialog open={open} onClose={handleDialogClose} maxWidth="xs" fullWidth>
+      <DialogTitle sx={{ textAlign: 'center', fontWeight: 700 }}>新增供应商</DialogTitle>
+      <DialogContent dividers>
+        <Stack spacing={2} sx={{ mt: 1 }}>
+          <TextField
+            label="供应名称"
+            value={form.name}
+            onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+            fullWidth
+            autoFocus
+            placeholder="例如：有機蘋果"
+          />
+          <TextField
+            label="数量"
+            type="number"
+            value={form.price}
+            onChange={e => setForm(f => ({ ...f, price: e.target.value }))}
+            InputProps={{ startAdornment: <InputAdornment position="start">NT$</InputAdornment> }}
+            sx={{ maxWidth: 240 }}
+          />
+          {error && <Typography color="error" sx={{ pt: 1 }}>{error}</Typography>}
+        </Stack>
+      </DialogContent>
+      <DialogActions sx={{ px: 3, pb: 2, justifyContent: 'flex-end' }}>
+        <Button onClick={handleDialogClose}>取消</Button>
+        <Button variant="contained" onClick={handleSubmit} disabled={loading} sx={{ ml: 1 }}>
+          新增
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
 }
