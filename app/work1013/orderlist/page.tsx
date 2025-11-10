@@ -1,43 +1,22 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import {
-  Box, Container, List, ListItem, ListItemText,
-  TextField, Button, Stack, Typography
-} from "@mui/material";
-import { blue } from "@mui/material/colors";
-import { createClient } from "@supabase/supabase-js";
+import ProductAdd from "./orderAdd";
+import { Box, Container, List, ListItem, ListItemText, Stack, Typography, Fab, IconButton } from "@mui/material";
+import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { blue } from '@mui/material/colors';
+import { supabase } from '../../../lib/supabaseClient';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabase = createClient(supabaseUrl, supabaseKey);
-
-type Product = { desc: string; price: number };
+type Product = { id: number; name: string; price: number };
 
 export default function ProductList() {
   const [products, setProducts] = useState<Product[]>([]);
   const [showAdd, setShowAdd] = useState(false);
-
-  // 讀取 Supabase 資料
-  const fetchProducts = async () => {
-    const { data, error } = await supabase.from("orderlist").select();
-    if (error) {
-      console.error(error);
-      setProducts([]);
-    } else {
-      setProducts(data || []);
-    }
-  };
-
-  // 元件掛載時自動載入資料
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
-  // 新增產品
-  function handleAddProduct(newItem: Product) {
-    setProducts((prev) => [newItem, ...prev]);
-  }
+  const [selected, setSelected] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const itemStyle = {
     bgcolor: blue[50],
@@ -45,85 +24,84 @@ export default function ProductList() {
     boxShadow: 3,
     p: 2,
   } as const;
-
   const listItemStyle = {
     bgcolor: blue[100],
     borderRadius: 1,
     mb: 1,
     boxShadow: 1,
   } as const;
+  // fetch function 可重用
+  async function fetchProducts() {
+    setLoading(true);
+    setError(null);
+    try {
+      const { data, error } = await supabase
+        .from("orderlist")
+        .select()
+        .order('id', { ascending: true });
+      if (error) {
+        console.error('讀取失敗:', error);
+        setProducts([]);
+        setError(error.message || '讀取失敗');
+      } else {
+        setProducts(data || []);
+      }
+    } catch (err: any) {
+      console.error(err);
+      setError(err?.message || '例外錯誤');
+      setProducts([]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => { fetchProducts(); }, []);
 
   return (
     <Container>
       <Box sx={itemStyle}>
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-          <Typography variant="h6">
-            {showAdd ? "新增產品" : "產品列表"}
-          </Typography>
-          <Button variant="outlined" onClick={() => setShowAdd((s) => !s)}>
-            {showAdd ? "回到列表" : "新增產品"}
-          </Button>
+          <Typography variant="h6">訂單列表</Typography>
         </Stack>
-
-        {showAdd ? (
-          <AddProductForm onAdd={(item) => { handleAddProduct(item); setShowAdd(false); }} />
-        ) : (
-          <List subheader="Product list" aria-label="product list">
-            {products.map((product, idx) => (
-              <ListItem divider key={`${product.desc}-${product.price}-${idx}`} sx={listItemStyle}>
-                <ListItemText
-                  primary={<span style={{ fontWeight: 600, fontSize: "1.1rem" }}>{product.desc}</span>}
-                  secondary={<span style={{ color: blue[700], fontWeight: 500 }}>Amount: {product.price}</span>}
-                />
-              </ListItem>
-            ))}
-          </List>
-        )}
+        <Fab color="primary" aria-label="add" sx={{ position: 'fixed', bottom: 32, right: 32, zIndex: 1000 }} onClick={() => { setSelected(null); setShowAdd(true); }}>
+          <AddIcon />
+        </Fab>
+        <List subheader="Order list" aria-label="order list">
+          {products.map((product) =>
+            <ListItem divider key={product.id} sx={listItemStyle}
+              secondaryAction={(
+                <>
+                  <IconButton edge="end" aria-label="edit" onClick={() => { setSelected(product); setShowAdd(true); }}>
+                    <EditIcon />
+                  </IconButton>
+                  <IconButton edge="end" aria-label="delete" onClick={async () => {
+                    // 直接呼叫刪除 API
+                    const confirmed = confirm('確定要刪除此筆資料嗎？');
+                    if (!confirmed) return;
+                    const { error } = await supabase.from('orderlist').delete().eq('id', product.id);
+                    if (error) {
+                      console.error('刪除失敗', error);
+                      alert('刪除失敗：' + error.message);
+                    } else {
+                      // 重新載入
+                      fetchProducts();
+                    }
+                  }}>
+                    <DeleteIcon />
+                  </IconButton>
+                </>
+              )}
+            >
+              <ListItemText
+                primary={<span style={{ fontWeight: 600, fontSize: '1.1rem' }}>{product.name}</span>}
+                secondary={<span style={{ color: blue[700], fontWeight: 500 }}>Amount: {product.price.toString()}</span>}
+              />
+            </ListItem>
+          )}
+        </List>
+        <ProductAdd open={showAdd} product={selected} onClose={() => setShowAdd(false)} onSaved={() => { setShowAdd(false); fetchProducts(); }} onDeleted={() => { setShowAdd(false); fetchProducts(); }} />
       </Box>
     </Container>
   );
-}
 
-// 🔽 新增產品表單元件
-function AddProductForm({ onAdd }: { onAdd: (item: Product) => void }) {
-  const [form, setForm] = useState({ desc: "", price: "" });
-  const [error, setError] = useState<string | null>(null);
-
-  function handleSubmit() {
-    setError(null);
-    if (!form.desc.trim()) {
-      setError("請輸入產品名稱");
-      return;
-    }
-    const n = Number(form.price);
-    if (!form.price || Number.isNaN(n) || n <= 0) {
-      setError("訂單數量需為大於 0 的數字");
-      return;
-    }
-    onAdd({ desc: form.desc.trim(), price: n });
-    setForm({ desc: "", price: "" });
-  }
-
-  return (
-    <>
-      <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mb: 2 }}>
-        <TextField
-          label="產品名稱"
-          value={form.desc}
-          onChange={(e) => setForm((f) => ({ ...f, desc: e.target.value }))}
-          fullWidth
-        />
-        <TextField
-          label="訂單數量"
-          value={form.price}
-          onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
-          sx={{ width: 160 }}
-        />
-        <Button variant="contained" onClick={handleSubmit}>
-          新增
-        </Button>
-      </Stack>
-      {error && <Typography color="error" sx={{ mb: 2 }}>{error}</Typography>}
-    </>
-  );
 }
