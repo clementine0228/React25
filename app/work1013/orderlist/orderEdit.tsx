@@ -15,7 +15,7 @@ interface ProductEditProps {
   onClose: () => void;
   onEdit: () => void;
 }
-
+//
 export default function ProductEdit({ open, product, onClose, onEdit }: ProductEditProps) {
   const [form, setForm] = useState({ name: product?.name || '', price: product?.price?.toString() || '' });
   const [error, setError] = useState<string | null>(null);
