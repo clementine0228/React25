@@ -1,71 +1,164 @@
 "use client";
-import { useState } from 'react';
-import Link from "next/link";
-// 確保 MemberPage.module.css 檔案在同一個目錄下
-import styles from './MemberPage.module.css'; 
-import React from 'react'; // 由於使用了 React.FormEvent，習慣上會明確引入 React
 
-export default function Member1Page() {
-  const [customers, setCustomers] = useState([
-    "王小明", 
-    "陳美麗", 
-    "李志強", 
-    "吳佩玲"
-  ]);
+import { Box, Container, List, ListItem, ListItemText, ListItemButton, TextField, Button } from "@mui/material";
+import { green, grey } from '@mui/material/colors';
+import Link from 'next/link';
+import { useState, useEffect } from 'react';
+import { supabase } from '../../../lib/supabaseClient';
 
-  const [newCustomerName, setNewCustomerName] = useState("");
+interface Customer { // 介面名稱改為 Customer (顧客)
+  id: number;
+  name: string;
+  created_at: string;
+  href?: string;
+}
 
-  // 修正：為 'e' 加上 React.FormEvent 型別註記
-  const handleAddCustomer = (e: React.FormEvent) => {
-    e.preventDefault();
+export default function Member1Page() { // 維持原元件名稱
+  // 狀態改為處理顧客資料，並移除價格欄位
+  const [newCustomer, setNewCustomer] = useState({ name: '' });
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-    if (newCustomerName.trim() === "") {
-      alert("請輸入顧客姓名！");
-      return;
+  useEffect(() => {
+    setMounted(true);
+    fetchCustomers(); // 呼叫新的資料獲取函數
+  }, []);
+
+  const fetchCustomers = async () => { // 函數名稱改為 fetchCustomers
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('customer') // 表格名稱改為 'customer'
+        .select('id, name, created_at') // 移除 price 欄位
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching customers:', error);
+        return;
+      }
+
+      if (data) {
+        setCustomers(data.map(customer => ({
+          ...customer,
+          href: `/work1013/member${customer.id}` // 連結路徑調整為 member
+        })));
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
     }
-
-    setCustomers((prevCustomers) => [
-      ...prevCustomers,
-      newCustomerName.trim()
-    ]);
-
-    setNewCustomerName("");
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setNewCustomer(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newCustomer.name) { // 僅檢查名稱
+      try {
+        const { error } = await supabase
+          .from('customer') // 表格名稱改為 'customer'
+          .insert([
+            {
+              name: newCustomer.name,
+            }
+          ]);
+
+        if (error) {
+          console.error('Error inserting customer:', error);
+          return;
+        }
+
+        fetchCustomers();
+        setNewCustomer({ name: '' }); // 重設名稱
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    }
+  };
+
+  // Dark theme styles (保持不變)
+  const itemStyle = {
+    bgcolor: grey[900], 
+    color: grey[50], 
+    borderRadius: 2,
+    boxShadow: 3,
+    p: 2,
+  };
+  const listItemStyle = {
+    bgcolor: grey[800], 
+    color: grey[50],
+    borderRadius: 1,
+    mb: 1,
+    boxShadow: 1,
+  };
+  if (!mounted) {
+    return null;
+  }
+
   return (
-    <div className={styles.container}>
-      
-      <h1 className={styles.title}>顧客列表 ({customers.length} 位)</h1>
-      
-      {/* 新增資料表單 */}
-      <form onSubmit={handleAddCustomer} className={styles.addForm}>
-        <input
-          type="text"
-          placeholder="輸入新的顧客姓名..."
-          value={newCustomerName}
-          onChange={(e) => setNewCustomerName(e.target.value)}
-          className={styles.inputField}
-        />
-        <button type="submit" className={styles.addButton}>
-          新增顧客
-        </button>
-      </form>
-      
-      {/* 顧客列表 */}
-      <ul className={styles.customerList}>
-        {customers.map((name, index) => (
-          <li key={index} className={styles.customerItem}>
-            {name}
-          </li>
-        ))}
-      </ul>
-      
-      {/* 回首頁連結 */}
-      <div className={styles.centerLink}>
-        <Link href="/work1013" className={styles.homeLink}>
-          回首頁
-        </Link>
-      </div>
-    </div>
+    <Container>
+      <Box sx={{ ...itemStyle, mb: 2 }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+          <TextField
+            name="name"
+            label="Customer Name" // 標籤改為 Customer Name
+            value={newCustomer.name}
+            onChange={handleInputChange}
+            variant="filled"
+            size="small"
+            sx={{
+              flex: 2,
+              '& .MuiFilledInput-input': { color: grey[50] },
+              '& .MuiInputLabel-root': { color: grey[400] },
+              '& .MuiFilledInput-root': { bgcolor: grey[800] }
+            }}
+          />
+          {/* 移除價格輸入欄位 */}
+          <Button
+            type="submit"
+            variant="contained"
+            sx={{ bgcolor: green[700], color: grey[50], '&:hover': { bgcolor: green[600] } }}
+          >
+            Add Customer {/* 按鈕文字改為 Add Customer */}
+          </Button>
+        </form>
+      </Box>
+      <Box sx={itemStyle}>
+        <List subheader="Customer List" aria-label="customer list" sx={{ color: grey[50] }}> {/* 副標題改為 Customer List */}
+          {loading ? (
+            <ListItem>
+              <ListItemText primary={<span style={{ color: grey[50] }}>Loading customers...</span>} />
+            </ListItem>
+          ) : customers.length === 0 ? (
+            <ListItem>
+              <ListItemText primary={<span style={{ color: grey[50] }}>No customers found</span>} />
+            </ListItem>
+          ) : customers.map((customer) =>
+            <ListItem divider key={customer.id} sx={listItemStyle}>
+              <Link href={customer.href || `/work1013/member${customer.id}`} passHref>
+                <ListItemButton component="a" sx={{ p: 1 }}>
+                  <ListItemText
+                    primary={<span style={{ fontWeight: 600, fontSize: '1.1rem', color: grey[50] }}>{customer.name}</span>}
+                    secondary={ // 簡化 secondary 顯示
+                      <span style={{ color: grey[400], fontSize: '0.8rem' }}>
+                        Added: {new Date(customer.created_at).toLocaleDateString()}
+                      </span>
+                    }
+                  />
+                </ListItemButton>
+              </Link>
+            </ListItem>
+          )}
+        </List>
+      </Box>
+    </Container>
   );
 }
