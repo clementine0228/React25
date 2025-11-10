@@ -35,7 +35,7 @@ export default function ProductList() {
   } as const;
    const supabase = createClient(supabaseUrl, supabaseKey);
 
-  // 從 Supabase 抓取產品資料
+  // 從 Supabase 抓取產品資
   // 初始載入與 refresh 觸發
   useEffect(() => {
     async function fetchProducts() {
