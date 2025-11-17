@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Container, List, ListItem, ListItemText, ListItemButton, TextField, Button, Typography, IconButton } from "@mui/material";
+import { Box, Container, List, ListItem, ListItemText, ListItemButton, TextField, Button, Typography, IconButton, Alert } from "@mui/material";
 // 引入圖示和顏色
 import DeleteIcon from '@mui/icons-material/Delete'; 
 import EditIcon from '@mui/icons-material/Edit';
@@ -22,7 +22,7 @@ export default function Member1Page() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
-  // 移除 [session, setSession] 狀態
+  const [user, setUser] = useState<any>(null);
   
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [editName, setEditName] = useState('');
@@ -30,11 +30,21 @@ export default function Member1Page() {
 
   useEffect(() => {
     setMounted(true);
-    // 移除 Session 相關的 fetch 和 listener
+    checkUser();
     fetchCustomers();
 
     // 由於移除了訂閱，這裡的 return 清理函數也變得不必要，但保留它無害
   }, []);
+
+  const checkUser = async () => {
+    try {
+      const { data } = await supabase.auth.getUser();
+      setUser(data?.user ?? null);
+    } catch (err) {
+      console.error('Error checking user:', err);
+      setUser(null);
+    }
+  };
 
   const fetchCustomers = async () => {
     try {
@@ -72,6 +82,10 @@ export default function Member1Page() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) {
+      alert('You must be logged in to add a customer');
+      return;
+    }
     if (newCustomer.name) {
       try {
         const { error } = await supabase
@@ -93,6 +107,10 @@ export default function Member1Page() {
   };
 
   const handleDelete = async (customerId: number) => {
+    if (!user) {
+      alert('You must be logged in to delete a customer');
+      return;
+    }
     // ✨ 權限檢查已移除。未登入用戶點擊也會嘗試刪除。
     if (!window.confirm("確定要刪除這位顧客嗎？此操作不可逆！")) return;
     
@@ -120,6 +138,10 @@ export default function Member1Page() {
   
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) {
+      alert('You must be logged in to edit a customer');
+      return;
+    }
     if (!editingCustomer || !editName) return;
 
     try {
@@ -178,6 +200,11 @@ export default function Member1Page() {
 
   return (
     <Container sx={{ pt: 4 }}> 
+      {!user && (
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          You must be logged in to add, edit, or delete customers. Please log in to perform these actions.
+        </Alert>
+      )}
       {/* 新增表單 */}
       <Box sx={{ ...itemStyle, mb: 2 }}>
         <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
@@ -188,9 +215,10 @@ export default function Member1Page() {
             onChange={handleInputChange}
             variant="filled"
             size="small"
+            disabled={!user}
             sx={{ flex: 2, '& .MuiFilledInput-input': { color: grey[50] }, '& .MuiInputLabel-root': { color: grey[400] }, '& .MuiFilledInput-root': { bgcolor: grey[800] } }}
           />
-          <Button type="submit" variant="contained" sx={{ bgcolor: green[700], color: grey[50], '&:hover': { bgcolor: green[600] } }}>
+          <Button type="submit" variant="contained" disabled={!user} sx={{ bgcolor: green[700], color: grey[50], '&:hover': { bgcolor: green[600] } }}>
             Add Customer
           </Button>
         </form>
@@ -216,6 +244,7 @@ export default function Member1Page() {
               <IconButton 
                   edge="end" 
                   aria-label="edit" 
+                  disabled={!user}
                   sx={{ mr: 1, color: blue[400], '&:hover': { color: blue[500] } }} 
                   onClick={() => startEdit(customer)}
               >
@@ -227,7 +256,7 @@ export default function Member1Page() {
                 edge="end" 
                 aria-label="delete" 
                 onClick={() => handleDelete(customer.id)}
-                disabled={loading}
+                disabled={loading || !user}
                 sx={{ color: red[400], '&:hover': { color: red[500] } }}
               >
                 <DeleteIcon />
