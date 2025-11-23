@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Container, List, ListItem, ListItemText, ListItemButton, TextField, Button, IconButton } from "@mui/material";
+import { Box, Container, List, ListItem, ListItemText, ListItemButton, TextField, Button, IconButton, Alert } from "@mui/material";
 import { blue, grey } from '@mui/material/colors';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
@@ -23,6 +23,7 @@ export default function ProductList() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [user, setUser] = useState<any>(null);
 
   // edit/delete states
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -31,8 +32,19 @@ export default function ProductList() {
   
   useEffect(() => {
     setMounted(true);
+    checkUser();
     fetchProducts();
   }, []);
+
+  const checkUser = async () => {
+    try {
+      const { data } = await supabase.auth.getUser();
+      setUser(data?.user ?? null);
+    } catch (err) {
+      console.error('Error checking user:', err);
+      setUser(null);
+    }
+  };
 
   const startEdit = (product: Product) => {
     setEditingId(product.id);
@@ -50,6 +62,10 @@ export default function ProductList() {
   };
 
   const saveEdit = async (id: number) => {
+    if (!user) {
+      alert('You must be logged in to edit a product');
+      return;
+    }
     if (!editValues.name || !editValues.price) return;
     setActionLoading(true);
     try {
@@ -71,6 +87,10 @@ export default function ProductList() {
   };
 
   const handleDelete = async (id: number) => {
+    if (!user) {
+      alert('You must be logged in to delete a product');
+      return;
+    }
     const ok = window.confirm('Delete this product?');
     if (!ok) return;
     setActionLoading(true);
@@ -127,6 +147,10 @@ export default function ProductList() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) {
+      alert('You must be logged in to add a product');
+      return;
+    }
     if (newProduct.name && newProduct.price) {
       try {
         const { error } = await supabase
@@ -175,6 +199,11 @@ export default function ProductList() {
   
   return (
     <Container>
+      {!user && (
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          You must be logged in to add, edit, or delete products. Please log in to perform these actions.
+        </Alert>
+      )}
       <Box sx={{ ...itemStyle, mb: 2 }}>
         <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
           <TextField
@@ -184,6 +213,7 @@ export default function ProductList() {
                 onChange={handleInputChange}
                 variant="filled"
                 size="small"
+                disabled={!user}
                 sx={{
                   flex: 2,
                   '& .MuiFilledInput-input': { color: grey[50] },
@@ -199,6 +229,7 @@ export default function ProductList() {
                 onChange={handleInputChange}
                 variant="filled"
                 size="small"
+                disabled={!user}
                 sx={{
                   flex: 1,
                   '& .MuiFilledInput-input': { color: grey[50] },
@@ -209,6 +240,7 @@ export default function ProductList() {
               <Button
                 type="submit"
                 variant="contained"
+                disabled={!user}
                 sx={{ bgcolor: blue[700], color: grey[50], '&:hover': { bgcolor: blue[600] } }}
               >
                 Add Product
@@ -256,10 +288,10 @@ export default function ProductList() {
                       </ListItemButton>
                     </Link>
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <IconButton onClick={() => startEdit(product)} sx={{ color: grey[400] }}>
+                      <IconButton onClick={() => startEdit(product)} disabled={!user} sx={{ color: grey[400] }}>
                         <EditIcon />
                       </IconButton>
-                      <IconButton onClick={() => handleDelete(product.id)} sx={{ color: grey[400] }}>
+                      <IconButton onClick={() => handleDelete(product.id)} disabled={!user} sx={{ color: grey[400] }}>
                         <DeleteIcon />
                       </IconButton>
                     </Box>

@@ -89,7 +89,7 @@ export default function ProductAdd({ open, product, onSaved, onDeleted, onClose 
         }
     };
 
-    // 刪除 /
+    // 刪除
     const handleDelete = async () => {
         if (!product || !product.id) return;
         setSubmitting(true);

@@ -199,10 +199,11 @@ export default function RegisterPage() {
             </Button>
           </Box>
 
+            
           <Box sx={{ mt: 3, textAlign: 'center' }}>
             <Typography variant="body2">
               已經有帳號了？{' '}
-              <MuiLink component={Link} href="/auth/login" underline="hover">
+              <MuiLink component={Link} href="/auth/login" underline="hover"> 
                 登入
               </MuiLink>
             </Typography>
