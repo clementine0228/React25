@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 
 export default function ProductList() {
   const router = useRouter();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [user, setUser] = useState<any | null>(null);
 
   const products = [
@@ -53,11 +54,14 @@ export default function ProductList() {
       setUser(session?.user ?? null);
     });
 
+
     return () => {
       mounted = false;
       // unsubscribe
       sub?.subscription?.unsubscribe?.();
     };
+
+    
   }, []);
 
   const handleLogout = async () => {
@@ -68,8 +72,9 @@ export default function ProductList() {
 
   return (
     <Container>
+      <Container sx={{ mt: 3 }}></Container>  {/* 画面下移动 留出空间给导览列 */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography sx={{ color: grey[50], fontWeight: 700 }}>Work1013</Typography>
+        <Typography sx={{ color: grey[500], fontWeight: 700 }}>Work1013</Typography>
         <Box>
           {!user ? (
             <>

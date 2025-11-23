@@ -4,7 +4,8 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import ProductEdit, { Product as SupplierProduct } from './supplierEdit';
-
+import { useRouter } from 'next/navigation';
+import { useTheme } from '@mui/material/styles';
 
 
 import React, { useEffect, useState } from "react";
@@ -21,22 +22,35 @@ export default function ProductList() {
   const [refresh, setRefresh] = useState(0);
   const [showEdit, setShowEdit] = useState(false);
   const [editProduct, setEditProduct] = useState<Product | null>(null);
+  const router = useRouter();
+  const theme = useTheme();
 
-
-  const itemStyle = {
-    bgcolor: blue[200],
+// 这里应用了 theme styles颜色
+const itemStyle = {
+    bgcolor: theme.palette.primary.light,
     borderRadius: 2,
     boxShadow: 3,
     p: 2,
+    '& .MuiTypography-root': {
+      color: theme.palette.common.white,
+    },
   } as const;
   const listItemStyle = {
-    bgcolor: grey[100],
+    bgcolor: theme.palette.primary.main,
     borderRadius: 1,
     mb: 3,
     boxShadow: 1,
+    '& .MuiListItemText-primary': {
+      //color: theme.palette.common.white,
+      fontWeight: 600,
+      fontSize: '1.1rem',
+    },
+    '& .MuiListItemText-secondary': {
+      //color: theme.palette.common.white,
+      fontWeight: 500,
+    },
   } as const;
-  
-
+// **
   async function handleDelete(id: number) { // 删除
     const { error } = await supabase
       .from("supplier")
@@ -77,6 +91,7 @@ export default function ProductList() {
 
   return (
     <Container>
+      <Container sx={{ mt: 3 }}></Container>  {/* 画面下移动 留出空间给导览列 */}
       <Box sx={itemStyle}>
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
            <Typography variant="h6">供应列表</Typography>
@@ -89,7 +104,7 @@ export default function ProductList() {
             <ListItem divider key={supplier.id} sx={listItemStyle}>
               <ListItemText
                 primary={<span style={{ color: '#000', fontWeight: 600, fontSize: '1.1rem' }}>{supplier.name}</span>}
-                secondary={<span style={{ color: blue[700], fontWeight: 500 }}>NT$ {supplier.price.toString()}</span>}
+                secondary={<span style={{ color: blue[700], fontWeight: 500 }}>供应 {supplier.price.toString()}</span>}
               />
 
               <Stack direction="row" spacing={1}>
